@@ -42,7 +42,6 @@ export default tseslint.config(
       'n/no-unpublished-import': 'off', // Too restrictive for backend apps
 
       // Node.js specific rules
-      'n/no-process-exit': 'warn',
       'n/no-deprecated-api': 'error',
     },
   },

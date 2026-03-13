@@ -10,6 +10,7 @@ const envSchema = z.object({
   PORT: z.coerce.number(),
   LOG_LEVEL: z.enum(Object.values(LogLevel)),
   MONGO_URI: z.url(),
+  REDIS_URL: z.url(),
 });
 
 export type Env = z.infer<typeof envSchema>;
