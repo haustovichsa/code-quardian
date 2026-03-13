@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import { z } from 'zod';
-import { NodeEnv } from '@/types/NodeEnv';
-import { LogLevel } from '@/types/LogLevel';
+import { NodeEnv } from '@/types/node-env';
+import { LogLevel } from '@/types/log-level';
 
 dotenv.config();
 
