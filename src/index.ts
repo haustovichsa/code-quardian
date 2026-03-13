@@ -1,15 +1,26 @@
 import express from 'express';
 import { env } from '@/utils/env.util';
 import { logger } from '@/utils/logger.util';
-import { healthCheck } from '@/controllers/health-check.controller';
+import { healthRoutes } from '@/routes/health.routes';
+import { notFoundHandler, errorHandler } from '@/middlewares/error.middleware';
+import { loggingHandler } from '@/middlewares/loggin.middleware';
 
 const app = express();
 
 // Middleware
 app.use(express.json());
 
-// Routes
-app.get('/health', healthCheck);
+// Request logging middleware
+app.use(loggingHandler);
+
+// API routes
+app.use('/api', healthRoutes);
+
+// 404 handler
+app.use(notFoundHandler);
+
+// Error handler
+app.use(errorHandler);
 
 // Start server
 app.listen(env.PORT, () => {
