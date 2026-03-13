@@ -36,4 +36,4 @@ export class ScanStore {
   }
 }
 
-export const scanService = new ScanStore();
+export const scanStore = new ScanStore();

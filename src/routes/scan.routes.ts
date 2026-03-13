@@ -1,8 +1,9 @@
 import { Request, Response, Router } from 'express';
-import { scanService } from '@/stores/scan.store';
+import { scanStore } from '@/stores/scan.store';
 import { logger } from '@/utils/logger.util';
 import { ScanStatus } from '@/types/scan-status';
 import { z } from 'zod';
+import { scanQueueService } from '@/services/scan-queue.service';
 const router = Router();
 
 const createScanSchema = z.object({
@@ -23,7 +24,13 @@ const createScan = async (req: Request, res: Response): Promise<void> => {
 
     const { repositoryUrl } = validation.data;
 
-    const scan = await scanService.createScan(repositoryUrl);
+    const scan = await scanStore.createScan(repositoryUrl);
+
+    await scanQueueService.addScanJobToQueue({
+      scanId: scan._id,
+      repositoryUrl,
+    });
+
     logger.info({ scan }, 'Scan created via API');
     res.status(200).json(scan);
   } catch (error) {
@@ -39,7 +46,7 @@ const getScanRoute = async (req: Request, res: Response): Promise<void> => {
   try {
     const scanId = req.params.scanId as string;
 
-    const scan = await scanService.getScanById(scanId);
+    const scan = await scanStore.getScanById(scanId);
 
     if (!scan) {
       res.status(404).json({

@@ -28,6 +28,7 @@ export class Scan {
   @prop({ type: Date })
   public finishedAt?: Date;
 
+  _id!: string;
   public createdAt!: Date;
   public updatedAt!: Date;
 }
