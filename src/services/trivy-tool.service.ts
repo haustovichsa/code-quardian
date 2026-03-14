@@ -2,7 +2,7 @@ import { logger } from '@/utils/logger.util';
 import { spawn } from 'child_process';
 
 class TrivyToolService {
-  private readonly cliTrivyPath: string = 'trivy'; // TODO: move to config
+  private readonly cliTrivyPath: string = 'trivy';
 
   async runTrivyScan({
     repositoryPath,

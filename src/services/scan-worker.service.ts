@@ -7,7 +7,7 @@ import { scannerService } from '@/services/scanner.service';
 
 export class ScanWorkerService {
   private worker: Worker<ScanJobPayload>;
-  private readonly queueName: string = 'scans'; // TODO: move to config
+  private readonly queueName: string = 'scans';
   constructor(redisUrl: string) {
     this.worker = new Worker<ScanJobPayload>(
       this.queueName,

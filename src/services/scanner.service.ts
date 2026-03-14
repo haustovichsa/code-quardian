@@ -10,7 +10,7 @@ class ScannerService {
   private readonly tmpDir: string;
 
   constructor() {
-    this.tmpDir = './tmp'; // TODO: move to config
+    this.tmpDir = './tmp';
   }
 
   async scanRepository(
