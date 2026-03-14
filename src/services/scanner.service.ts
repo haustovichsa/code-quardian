@@ -3,6 +3,8 @@ import { logger } from '@/utils/logger.util';
 import path from 'path';
 import { cloneRepository } from '@/utils/git.util';
 import { trivyToolService } from '@/services/trivy-tool.service';
+import { vulnerabilityJsonParserService } from '@/services/vulnerability-json-parser-service';
+import { Vulnerability } from '@/models/scan.model';
 
 class ScannerService {
   private readonly tmpDir: string;
@@ -17,7 +19,10 @@ class ScannerService {
     }
   }
 
-  async scanRepository(scanId: string, repositoryUrl: string): Promise<void> {
+  async scanRepository(
+    scanId: string,
+    repositoryUrl: string
+  ): Promise<Vulnerability[]> {
     const scanDir = path.join(this.tmpDir, scanId);
     const repoDir = path.join(scanDir, 'repo');
     const outputPath = path.join(scanDir, 'scan-result.json');
@@ -35,6 +40,19 @@ class ScannerService {
         repositoryPath: repoDir,
         outputPath,
       });
+
+      // Stream parse JSON and extract CRITICAL vulnerabilities
+      const vulnerabilities =
+        await vulnerabilityJsonParserService.getCriticalVulnerabilities(
+          outputPath
+        );
+
+      logger.info(
+        { scanId, count: vulnerabilities.length },
+        'Extracted CRITICAL vulnerabilities'
+      );
+
+      return vulnerabilities;
     } finally {
       this.cleanup(scanDir);
     }

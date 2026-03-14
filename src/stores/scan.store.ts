@@ -1,4 +1,4 @@
-import { ScanModel, Scan } from '@/models/scan.model';
+import { ScanModel, Scan, Vulnerability } from '@/models/scan.model';
 import { ScanStatus } from '@/types/scan-status';
 import { Types } from 'mongoose';
 
@@ -20,7 +20,12 @@ export class ScanStore {
   async updateScanStatus(
     id: string,
     status: ScanStatus,
-    additionalData?: { error?: string; startedAt?: Date; finishedAt?: Date }
+    additionalData?: {
+      error?: string;
+      startedAt?: Date;
+      finishedAt?: Date;
+      vulnerabilities?: Vulnerability[];
+    }
   ): Promise<Scan | null> {
     if (!Types.ObjectId.isValid(id)) {
       return null;

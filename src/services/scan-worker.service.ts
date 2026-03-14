@@ -47,18 +47,19 @@ export class ScanWorkerService {
       logger.info({ scanId }, 'Updated scan status to Scanning');
 
       // Run scanner (clone, Trivy, stream parse)
-      // TODO: get results and save vulnerabilities to DB
-      await scannerService.scanRepository(scanId, repositoryUrl);
+      const vulnerabilities = await scannerService.scanRepository(
+        scanId,
+        repositoryUrl
+      );
 
       // Update status to Finished with vulnerabilities
       await scanStore.updateScanStatus(scanId, ScanStatus.Finished, {
         finishedAt: new Date(),
-        // TODO: add vulnerabilities
+        vulnerabilities,
       });
 
-      const vulnerabilitiesCount = 0; // TODO: replace with actual count
       logger.info(
-        { scanId, vulnerabilitiesCount },
+        { scanId, vulnerabilitiesCount: vulnerabilities.concat() },
         'Scan completed successfully'
       );
     } catch (error) {
@@ -70,8 +71,8 @@ export class ScanWorkerService {
         error: error instanceof Error ? error.message : 'Unknown error',
       });
 
-      // only one retry. not need to throw an error to let BullMQ handle retry logic
-      // throw error;
+      // throw an error to let BullMQ handle retry logic
+      throw error;
     }
   }
 
