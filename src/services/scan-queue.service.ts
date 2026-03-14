@@ -1,17 +1,21 @@
 import { Queue, Job } from 'bullmq';
-import { env } from '@/utils/env.util';
+import { injectable } from 'inversify';
 import { logger } from '@/utils/logger.util';
+import { env } from '@/utils/env.util';
 import type { ScanJobPayload } from '@/types/scan-job';
 
-class ScanQueueService {
+export const ScanQueueServiceToken = Symbol.for('ScanQueueService');
+
+@injectable()
+export class ScanQueueService {
   private queue: Queue<ScanJobPayload>;
   private readonly queueName: string = 'scans';
   private readonly jobName: string = 'scan-repository';
 
-  constructor(redisUrl: string) {
+  constructor() {
     this.queue = new Queue<ScanJobPayload>(this.queueName, {
       connection: {
-        url: redisUrl,
+        url: env.REDIS_URL,
       },
     });
 
@@ -61,5 +65,3 @@ class ScanQueueService {
     logger.info('Scan queue closed');
   }
 }
-
-export const scanQueueService = new ScanQueueService(env.REDIS_URL);

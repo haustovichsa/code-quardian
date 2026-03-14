@@ -1,28 +1,51 @@
-import { env } from '@/utils/env.util';
+import 'reflect-metadata';
+import { createWorkerContainer } from '@/di/worker.container';
+import {
+  MongodbService,
+  MongodbServiceToken,
+} from '@/services/mongodb.service';
+import {
+  ScanWorkerService,
+  ScanWorkerServiceToken,
+} from '@/services/scan-worker.service';
 import { logger } from '@/utils/logger.util';
-import { mongodbService } from '@/services/mongodb.service';
-import { ScanWorkerService } from '@/services/scan-worker.service';
+import type { Container } from 'inversify';
 
-let scanWorkerService: ScanWorkerService | null = null;
+let container: Container | null = null;
 
 const startWorker = async (): Promise<void> => {
   try {
     logger.info('Starting Code Guardian Worker...');
 
+    // Create DI container
+    container = createWorkerContainer();
+
+    // Resolve services
+    const mongodbService = container.get<MongodbService>(MongodbServiceToken);
+
     // Connect to MongoDB
     await mongodbService.connect();
 
-    // Initialize worker service
-    scanWorkerService = new ScanWorkerService(env.REDIS_URL);
+    // Resolve worker service (auto-starts in constructor)
+    container.get<ScanWorkerService>(ScanWorkerServiceToken);
 
     logger.info('Code Guardian Worker started successfully');
   } catch (error) {
     logger.fatal({ error }, 'Failed to start worker');
-    if (scanWorkerService) {
-      await scanWorkerService.close();
-    }
-    await mongodbService.disconnect();
+    await cleanup();
     process.exit(1);
+  }
+};
+
+const cleanup = async (): Promise<void> => {
+  if (container) {
+    const scanWorkerService = container.get<ScanWorkerService>(
+      ScanWorkerServiceToken
+    );
+    const mongodbService = container.get<MongodbService>(MongodbServiceToken);
+
+    await scanWorkerService.close();
+    await mongodbService.disconnect();
   }
 };
 
@@ -31,10 +54,7 @@ const shutdown = async (signal: string): Promise<void> => {
   logger.info({ signal }, 'Received shutdown signal');
 
   try {
-    if (scanWorkerService) {
-      await scanWorkerService.close();
-    }
-    await mongodbService.disconnect();
+    await cleanup();
     logger.info('Worker shutdown complete');
     process.exit(0);
   } catch (error) {

@@ -1,8 +1,12 @@
 import mongoose from 'mongoose';
+import { injectable } from 'inversify';
 import { logger } from '@/utils/logger.util';
 import { env } from '@/utils/env.util';
 
-class MongodbService {
+export const MongodbServiceToken = Symbol.for('MongodbService');
+
+@injectable()
+export class MongodbService {
   async connect(): Promise<void> {
     try {
       await mongoose.connect(env.MONGO_URI, {
@@ -33,5 +37,3 @@ class MongodbService {
     }
   }
 }
-
-export const mongodbService = new MongodbService();

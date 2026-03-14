@@ -1,14 +1,23 @@
 import { Worker, Job } from 'bullmq';
+import { injectable, inject } from 'inversify';
 import { logger } from '@/utils/logger.util';
-import { scanStore } from '@/stores/scan.store';
 import { ScanStatus } from '@/types/scan-status';
 import type { ScanJobPayload } from '@/types/scan-job';
-import { scannerService } from '@/services/scanner.service';
+import { env } from '@/utils/env.util';
+import { ScanStore, ScanStoreToken } from '@/stores/scan.store';
+import { ScannerService, ScannerServiceToken } from './scanner.service';
 
+export const ScanWorkerServiceToken = Symbol.for('ScanWorkerService');
+
+@injectable()
 export class ScanWorkerService {
   private worker: Worker<ScanJobPayload>;
   private readonly queueName: string = 'scans';
-  constructor(redisUrl: string) {
+
+  constructor(
+    @inject(ScanStoreToken) private scanStore: ScanStore,
+    @inject(ScannerServiceToken) private scannerService: ScannerService
+  ) {
     this.worker = new Worker<ScanJobPayload>(
       this.queueName,
       async (job: Job<ScanJobPayload>) => {
@@ -16,7 +25,7 @@ export class ScanWorkerService {
       },
       {
         connection: {
-          url: redisUrl,
+          url: env.REDIS_URL,
         },
         concurrency: 3, // Process up to 3 scans concurrently per worker
       }
@@ -40,20 +49,20 @@ export class ScanWorkerService {
 
     try {
       // Update status to Scanning
-      await scanStore.updateScanStatus(scanId, ScanStatus.Scanning, {
+      await this.scanStore.updateScanStatus(scanId, ScanStatus.Scanning, {
         startedAt: new Date(),
       });
 
       logger.info({ scanId }, 'Updated scan status to Scanning');
 
       // Run scanner (clone, Trivy, stream parse)
-      const vulnerabilities = await scannerService.scanRepository(
+      const vulnerabilities = await this.scannerService.scanRepository(
         scanId,
         repositoryUrl
       );
 
       // Update status to Finished with vulnerabilities
-      await scanStore.updateScanStatus(scanId, ScanStatus.Finished, {
+      await this.scanStore.updateScanStatus(scanId, ScanStatus.Finished, {
         finishedAt: new Date(),
         vulnerabilities,
       });
@@ -66,7 +75,7 @@ export class ScanWorkerService {
       logger.error({ scanId, error }, 'Scan failed');
 
       // Update status to Failed with error message
-      await scanStore.updateScanStatus(scanId, ScanStatus.Failed, {
+      await this.scanStore.updateScanStatus(scanId, ScanStatus.Failed, {
         finishedAt: new Date(),
         error: error instanceof Error ? error.message : 'Unknown error',
       });

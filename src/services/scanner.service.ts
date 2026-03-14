@@ -1,15 +1,26 @@
 import * as fs from 'node:fs/promises';
+import { injectable, inject } from 'inversify';
 import { logger } from '@/utils/logger.util';
 import path from 'path';
 import { cloneRepository } from '@/utils/git.util';
-import { trivyToolService } from '@/services/trivy-tool.service';
-import { vulnerabilityJsonParserService } from '@/services/vulnerability-json-parser.service';
 import { Vulnerability } from '@/models/scan.model';
+import { TrivyToolService, TrivyToolServiceToken } from './trivy-tool.service';
+import {
+  VulnerabilityJsonParserService,
+  VulnerabilityJsonParserServiceToken,
+} from './vulnerability-json-parser.service';
 
-class ScannerService {
+export const ScannerServiceToken = Symbol.for('ScannerService');
+
+@injectable()
+export class ScannerService {
   private readonly tmpDir: string;
 
-  constructor() {
+  constructor(
+    @inject(TrivyToolServiceToken) private trivyToolService: TrivyToolService,
+    @inject(VulnerabilityJsonParserServiceToken)
+    private vulnerabilityJsonParserService: VulnerabilityJsonParserService
+  ) {
     this.tmpDir = './tmp';
   }
 
@@ -34,7 +45,7 @@ class ScannerService {
       logger.info({ memBefore, scanId }, 'Memory before Trivy scan');
 
       // Run Trivy scan
-      await trivyToolService.runTrivyScan({
+      await this.trivyToolService.runTrivyScan({
         repositoryPath: repoDir,
         outputPath,
       });
@@ -55,7 +66,7 @@ class ScannerService {
 
       // Stream parse JSON and extract CRITICAL vulnerabilities
       const vulnerabilities =
-        await vulnerabilityJsonParserService.getCriticalVulnerabilities(
+        await this.vulnerabilityJsonParserService.getCriticalVulnerabilities(
           outputPath
         );
 
@@ -79,5 +90,3 @@ class ScannerService {
     }
   }
 }
-
-export const scannerService = new ScannerService();

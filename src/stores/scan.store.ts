@@ -1,7 +1,11 @@
+import { injectable } from 'inversify';
 import { ScanModel, Scan, Vulnerability } from '@/models/scan.model';
 import { ScanStatus } from '@/types/scan-status';
 import { Types } from 'mongoose';
 
+export const ScanStoreToken = Symbol.for('ScanStore');
+
+@injectable()
 export class ScanStore {
   async createScan(repositoryUrl: string): Promise<Scan> {
     return ScanModel.create({
@@ -40,5 +44,3 @@ export class ScanStore {
     );
   }
 }
-
-export const scanStore = new ScanStore();

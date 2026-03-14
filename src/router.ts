@@ -1,23 +1,28 @@
-import express from 'express';
+import express, { Express } from 'express';
+import { Container } from 'inversify';
 import { healthRoutes } from '@/routes/health.routes';
 import { notFoundHandler, errorHandler } from '@/middlewares/error.middleware';
 import { loggingHandler } from '@/middlewares/loggin.middleware';
-import { scanRoutes } from '@/routes/scan.routes';
+import { createScanRoutes } from '@/routes/scan.routes';
 
-export const app = express();
+export const createApp = (container: Container): Express => {
+  const app = express();
 
-// Middleware
-app.use(express.json());
+  // Middleware
+  app.use(express.json());
 
-// Request logging middleware
-app.use(loggingHandler);
+  // Request logging middleware
+  app.use(loggingHandler);
 
-// API routes
-app.use('/api', healthRoutes);
-app.use('/api', scanRoutes);
+  // API routes
+  app.use('/api', healthRoutes);
+  app.use('/api', createScanRoutes(container));
 
-// 404 handler
-app.use(notFoundHandler);
+  // 404 handler
+  app.use(notFoundHandler);
 
-// Error handler
-app.use(errorHandler);
+  // Error handler
+  app.use(errorHandler);
+
+  return app;
+};

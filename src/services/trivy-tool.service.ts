@@ -1,7 +1,11 @@
+import { injectable } from 'inversify';
 import { logger } from '@/utils/logger.util';
 import { spawn } from 'child_process';
 
-class TrivyToolService {
+export const TrivyToolServiceToken = Symbol.for('TrivyToolService');
+
+@injectable()
+export class TrivyToolService {
   private readonly cliTrivyPath: string = 'trivy';
 
   async runTrivyScan({
@@ -62,5 +66,3 @@ class TrivyToolService {
     });
   }
 }
-
-export const trivyToolService = new TrivyToolService();

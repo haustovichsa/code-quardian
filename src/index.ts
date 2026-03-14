@@ -1,16 +1,37 @@
+import 'reflect-metadata';
+import { createApiContainer } from '@/di/api.container';
+import {
+  MongodbService,
+  MongodbServiceToken,
+} from '@/services/mongodb.service';
+import {
+  ScanQueueService,
+  ScanQueueServiceToken,
+} from '@/services/scan-queue.service';
 import { env } from '@/utils/env.util';
 import { logger } from '@/utils/logger.util';
-import { mongodbService } from '@/services/mongodb.service';
-import { scanQueueService } from '@/services/scan-queue.service';
-import { app } from '@/router';
+import { createApp } from '@/router';
 import type { Server } from 'http';
+import type { Container } from 'inversify';
 
 let server: Server | null = null;
+let container: Container | null = null;
 
 const startServer = async (): Promise<void> => {
   try {
+    // Create DI container
+    container = createApiContainer();
+
+    // Resolve services
+    const mongodbService = container.get<MongodbService>(MongodbServiceToken);
+
+    // Connect to MongoDB
     await mongodbService.connect();
 
+    // Create Express app with container
+    const app = createApp(container);
+
+    // Start HTTP server
     server = app.listen(env.PORT, () => {
       logger.info(`API started on http://localhost:${env.PORT}`);
     });
@@ -27,11 +48,17 @@ const cleanup = async (): Promise<void> => {
     await new Promise((resolve) => server!.close(resolve));
   }
 
-  // Close queue connection
-  await scanQueueService.close();
+  if (container) {
+    // Resolve services for cleanup
+    const scanQueueService = container.get<ScanQueueService>(
+      ScanQueueServiceToken
+    );
+    const mongodbService = container.get<MongodbService>(MongodbServiceToken);
 
-  // Close database
-  await mongodbService.disconnect();
+    // Close connections
+    await scanQueueService.close();
+    await mongodbService.disconnect();
+  }
 };
 
 const shutdown = async (signal: string): Promise<void> => {
