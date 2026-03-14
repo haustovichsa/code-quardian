@@ -15,6 +15,10 @@ class ScanQueueService {
       },
     });
 
+    this.queue.on('error', (error: Error) => {
+      logger.error({ error }, 'Queue connection error');
+    });
+
     logger.info('Queue initialized');
   }
 
@@ -25,26 +29,31 @@ class ScanQueueService {
     scanId: string;
     repositoryUrl: string;
   }): Promise<Job<ScanJobPayload>> {
-    const job = await this.queue.add(
-      this.jobName,
-      {
-        scanId,
-        repositoryUrl,
-      },
-      {
-        attempts: 1,
-        removeOnComplete: {
-          age: 86400, // Keep completed jobs for 24 hours
-          count: 1000,
+    try {
+      const job = await this.queue.add(
+        this.jobName,
+        {
+          scanId,
+          repositoryUrl,
         },
-        removeOnFail: {
-          age: 604800, // Keep failed jobs for 7 days
-        },
-      }
-    );
+        {
+          attempts: 1,
+          removeOnComplete: {
+            age: 86400, // Keep completed jobs for 24 hours
+            count: 1000,
+          },
+          removeOnFail: {
+            age: 604800, // Keep failed jobs for 7 days
+          },
+        }
+      );
 
-    logger.info({ scanId, jobId: job.id }, 'Scan job added to queue');
-    return job;
+      logger.info({ scanId, jobId: job.id }, 'Scan job added to queue');
+      return job;
+    } catch (error) {
+      logger.error({ error, scanId }, 'Failed to add job to queue');
+      throw new Error('Failed to enqueue scan job. Redis may be unavailable.');
+    }
   }
 
   async close(): Promise<void> {
