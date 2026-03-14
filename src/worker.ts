@@ -3,7 +3,7 @@ import { logger } from '@/utils/logger.util';
 import { mongodbService } from '@/services/mongodb.service';
 import { ScanWorkerService } from '@/services/scan-worker.service';
 
-let scanWorkerService: ScanWorkerService;
+let scanWorkerService: ScanWorkerService | null = null;
 
 const startWorker = async (): Promise<void> => {
   try {
@@ -18,6 +18,9 @@ const startWorker = async (): Promise<void> => {
     logger.info('Code Guardian Worker started successfully');
   } catch (error) {
     logger.fatal({ error }, 'Failed to start worker');
+    if (scanWorkerService) {
+      await scanWorkerService.close();
+    }
     await mongodbService.disconnect();
     process.exit(1);
   }
