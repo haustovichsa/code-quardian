@@ -35,11 +35,29 @@ class ScannerService {
       // Clone repository
       await cloneRepository({ repositoryUrl, targetDir: repoDir });
 
+      // Memory monitoring: Before Trivy scan
+      const memBefore = process.memoryUsage();
+      logger.info({ memBefore, scanId }, 'Memory before Trivy scan');
+
       // Run Trivy scan
       await trivyToolService.runTrivyScan({
         repositoryPath: repoDir,
         outputPath,
       });
+
+      // Memory monitoring: After Trivy scan
+      const memAfter = process.memoryUsage();
+      logger.info(
+        {
+          memAfter,
+          scanId,
+          delta: {
+            heapUsed: (memAfter.heapUsed - memBefore.heapUsed) / 1024 / 1024, // Trivy scan increased heap
+            rss: (memAfter.rss - memBefore.rss) / 1024 / 1024, //  // Process memory increased
+          },
+        },
+        'Memory after Trivy scan (MB)'
+      );
 
       // Stream parse JSON and extract CRITICAL vulnerabilities
       const vulnerabilities =

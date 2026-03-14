@@ -65,7 +65,7 @@ const getScanRoute = async (req: Request, res: Response): Promise<void> => {
       status: scan.status,
       // TODO: not implemented yet
       ...(scan.status === ScanStatus.Finished && {
-        criticalVulnerabilities: [],
+        vulnerabilities: scan.vulnerabilities,
       }),
     });
   } catch (error) {

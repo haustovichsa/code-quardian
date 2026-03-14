@@ -29,13 +29,25 @@ class TrivyToolService {
         stderr += data.toString();
       });
 
-      trivy.on('close', (code) => {
+      trivy.on('close', (code, signal) => {
         if (code === 0) {
           logger.info({ repositoryPath, outputPath }, 'Trivy scan completed');
           resolve();
         } else {
-          logger.error({ code, stderr }, 'Trivy scan failed');
-          reject(new Error(`Trivy scan failed with code ${code}: ${stderr}`));
+          if (signal) {
+            logger.error(
+              { signal, stderr },
+              'Trivy process killed by signal (possible OOM)'
+            );
+            reject(
+              new Error(
+                `Trivy process killed by signal ${signal} (likely out of memory). Consider increasing memory limits. Details: ${stderr}`
+              )
+            );
+          } else {
+            logger.error({ code, stderr }, 'Trivy scan failed');
+            reject(new Error(`Trivy scan failed with code ${code}: ${stderr}`));
+          }
         }
       });
 

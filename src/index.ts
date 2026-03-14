@@ -24,7 +24,7 @@ const startServer = async (): Promise<void> => {
 const cleanup = async (): Promise<void> => {
   // Close HTTP server
   if (server) {
-    await new Promise((resolve) => server.close(resolve));
+    await new Promise((resolve) => server!.close(resolve));
   }
 
   // Close queue connection

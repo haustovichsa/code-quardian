@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  # Redis
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # MongoDB
+  mongodb:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # API Server
+  api:
+    build:
+      context: .
+      target: api
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - LOG_LEVEL=info
+      - MONGO_URI=mongodb://mongodb:27017/code-guardian
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    mem_limit: 200m
+    restart: unless-stopped
+
+  # Worker 1
+  worker-1:
+    build:
+      context: .
+      target: worker
+    environment:
+      - NODE_ENV=production
+      - LOG_LEVEL=info
+      - MONGO_URI=mongodb://mongodb:27017/code-guardian
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - trivy-cache:/root/.cache/trivy
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    mem_limit: 200m
+    restart: unless-stopped
+
+  # Worker 2
+  worker-2:
+    build:
+      context: .
+      target: worker
+    environment:
+      - NODE_ENV=production
+      - LOG_LEVEL=info
+      - MONGO_URI=mongodb://mongodb:27017/code-guardian
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - trivy-cache:/root/.cache/trivy
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    mem_limit: 200m
+    restart: unless-stopped
+
+volumes:
+  mongodb-data:
+  trivy-cache:
