@@ -7,7 +7,9 @@ import { scanQueueService } from '@/services/scan-queue.service';
 const router = Router();
 
 const createScanSchema = z.object({
-  repositoryUrl: z.url(),
+  repositoryUrl: z
+    .url()
+    .regex(/github\.com/, 'Must be a GitHub repository URL'),
 });
 
 const createScan = async (req: Request, res: Response): Promise<void> => {
@@ -32,7 +34,11 @@ const createScan = async (req: Request, res: Response): Promise<void> => {
     });
 
     logger.info({ scan }, 'Scan created via API');
-    res.status(200).json(scan);
+
+    res.status(200).json({
+      scanId: scan._id,
+      status: scan.status,
+    });
   } catch (error) {
     logger.error({ error }, 'Error creating scan');
     res.status(500).json({

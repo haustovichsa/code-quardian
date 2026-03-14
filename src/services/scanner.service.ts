@@ -1,0 +1,55 @@
+import * as fs from 'node:fs';
+import { logger } from '@/utils/logger.util';
+import path from 'path';
+import { cloneRepository } from '@/utils/git.util';
+import { trivyToolService } from '@/services/trivy-tool.service';
+
+class ScannerService {
+  private readonly tmpDir: string;
+
+  constructor() {
+    this.tmpDir = './tmp'; // TODO: move to config
+
+    // Ensure tmp directory exists
+    if (!fs.existsSync(this.tmpDir)) {
+      fs.mkdirSync(this.tmpDir, { recursive: true });
+      logger.info({ tmpDir: this.tmpDir }, 'Created temp directory');
+    }
+  }
+
+  async scanRepository(scanId: string, repositoryUrl: string): Promise<void> {
+    const scanDir = path.join(this.tmpDir, scanId);
+    const repoDir = path.join(scanDir, 'repo');
+    const outputPath = path.join(scanDir, 'scan-result.json');
+
+    try {
+      // Create scan directory
+      fs.mkdirSync(scanDir, { recursive: true });
+      logger.info({ scanId, scanDir }, 'Created scan directory');
+
+      // Clone repository
+      await cloneRepository({ repositoryUrl, targetDir: repoDir });
+
+      // Run Trivy scan
+      await trivyToolService.runTrivyScan({
+        repositoryPath: repoDir,
+        outputPath,
+      });
+    } finally {
+      this.cleanup(scanDir);
+    }
+  }
+
+  private cleanup(scanDir: string): void {
+    try {
+      if (fs.existsSync(scanDir)) {
+        fs.rmSync(scanDir, { recursive: true, force: true });
+        logger.info({ scanDir }, 'Cleaned up scan directory');
+      }
+    } catch (error) {
+      logger.error({ error, scanDir }, 'Failed to cleanup scan directory');
+    }
+  }
+}
+
+export const scannerService = new ScannerService();

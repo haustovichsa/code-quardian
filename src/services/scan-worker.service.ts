@@ -3,6 +3,7 @@ import { logger } from '@/utils/logger.util';
 import { scanStore } from '@/stores/scan.store';
 import { ScanStatus } from '@/types/scan-status';
 import type { ScanJobPayload } from '@/types/scan-job';
+import { scannerService } from '@/services/scanner.service';
 
 export class ScanWorkerService {
   private worker: Worker<ScanJobPayload>;
@@ -46,7 +47,8 @@ export class ScanWorkerService {
       logger.info({ scanId }, 'Updated scan status to Scanning');
 
       // Run scanner (clone, Trivy, stream parse)
-      // TODO: not implemented yet.
+      // TODO: get results and save vulnerabilities to DB
+      await scannerService.scanRepository(scanId, repositoryUrl);
 
       // Update status to Finished with vulnerabilities
       await scanStore.updateScanStatus(scanId, ScanStatus.Finished, {
