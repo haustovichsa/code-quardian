@@ -59,7 +59,7 @@ export class ScanWorkerService {
       });
 
       logger.info(
-        { scanId, vulnerabilitiesCount: vulnerabilities.concat() },
+        { scanId, vulnerabilitiesCount: vulnerabilities.length },
         'Scan completed successfully'
       );
     } catch (error) {
