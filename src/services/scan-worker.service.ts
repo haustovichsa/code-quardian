@@ -18,7 +18,7 @@ export class ScanWorkerService {
         connection: {
           url: redisUrl,
         },
-        concurrency: 1, // Process one scan at a time per worker
+        concurrency: 3, // Process up to 3 scans concurrently per worker
       }
     );
 
