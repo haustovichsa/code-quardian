@@ -1,4 +1,4 @@
-import * as fs from 'node:fs';
+import * as fs from 'node:fs/promises';
 import { logger } from '@/utils/logger.util';
 import path from 'path';
 import { cloneRepository } from '@/utils/git.util';
@@ -11,12 +11,6 @@ class ScannerService {
 
   constructor() {
     this.tmpDir = './tmp'; // TODO: move to config
-
-    // Ensure tmp directory exists
-    if (!fs.existsSync(this.tmpDir)) {
-      fs.mkdirSync(this.tmpDir, { recursive: true });
-      logger.info({ tmpDir: this.tmpDir }, 'Created temp directory');
-    }
   }
 
   async scanRepository(
@@ -29,7 +23,7 @@ class ScannerService {
 
     try {
       // Create scan directory
-      fs.mkdirSync(scanDir, { recursive: true });
+      await fs.mkdir(scanDir, { recursive: true });
       logger.info({ scanId, scanDir }, 'Created scan directory');
 
       // Clone repository
@@ -72,16 +66,14 @@ class ScannerService {
 
       return vulnerabilities;
     } finally {
-      this.cleanup(scanDir);
+      await this.cleanup(scanDir);
     }
   }
 
-  private cleanup(scanDir: string): void {
+  private async cleanup(scanDir: string): Promise<void> {
     try {
-      if (fs.existsSync(scanDir)) {
-        fs.rmSync(scanDir, { recursive: true, force: true });
-        logger.info({ scanDir }, 'Cleaned up scan directory');
-      }
+      await fs.rm(scanDir, { recursive: true, force: true });
+      logger.info({ scanDir }, 'Cleaned up scan directory');
     } catch (error) {
       logger.error({ error, scanDir }, 'Failed to cleanup scan directory');
     }
