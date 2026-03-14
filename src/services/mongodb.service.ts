@@ -5,7 +5,10 @@ import { env } from '@/utils/env.util';
 class MongodbService {
   async connect(): Promise<void> {
     try {
-      await mongoose.connect(env.MONGO_URI);
+      await mongoose.connect(env.MONGO_URI, {
+        maxPoolSize: 10,
+        minPoolSize: 2,
+      });
       logger.info('MongoDB connected successfully');
 
       mongoose.connection.on('error', (err) => {
