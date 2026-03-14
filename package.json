@@ -5,8 +5,8 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "dev:worker": "tsx watch src/worker.ts",
+    "dev": "NODE_OPTIONS='--max-old-space-size=150' tsx watch src/index.ts",
+    "dev:worker": "NODE_OPTIONS='--max-old-space-size=150' tsx watch src/worker.ts",
     "start": "node dist/index.js",
     "start:worker": "node dist/worker.js",
     "build": "tsc",
