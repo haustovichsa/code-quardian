@@ -8,8 +8,28 @@ const router = Router();
 
 const createScanSchema = z.object({
   repositoryUrl: z
+    .string()
     .url()
-    .regex(/github\.com/, 'Must be a GitHub repository URL'),
+    .refine(
+      (url) => {
+        try {
+          const parsed = new URL(url);
+          return (
+            parsed.protocol === 'https:' &&
+            parsed.hostname === 'github.com' &&
+            parsed.pathname.match(
+              /^\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+(\.git)?\/?$/
+            ) !== null
+          );
+        } catch {
+          return false;
+        }
+      },
+      {
+        message:
+          'Must be a valid GitHub repository URL (https://github.com/owner/repo)',
+      }
+    ),
 });
 
 const createScan = async (req: Request, res: Response): Promise<void> => {
