@@ -3,7 +3,7 @@ import { logger } from '@/utils/logger.util';
 import path from 'path';
 import { cloneRepository } from '@/utils/git.util';
 import { trivyToolService } from '@/services/trivy-tool.service';
-import { vulnerabilityJsonParserService } from '@/services/vulnerability-json-parser-service';
+import { vulnerabilityJsonParserService } from '@/services/vulnerability-json-parser.service';
 import { Vulnerability } from '@/models/scan.model';
 
 class ScannerService {
