@@ -58,14 +58,14 @@ export const createScanRoutes = (container: Container): Router => {
       const scan = await scanStore.createScan(repositoryUrl);
 
       await scanQueueService.addScanJobToQueue({
-        scanId: scan._id,
+        scanId: scan._id.toString(),
         repositoryUrl,
       });
 
       logger.info({ scan }, 'Scan created via API');
 
       res.status(200).json({
-        scanId: scan._id,
+        scanId: scan._id.toString(),
         status: scan.status,
       });
     } catch (error) {

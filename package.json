@@ -2,11 +2,14 @@
   "name": "code-guardian",
   "version": "1.0.0",
   "description": "Trivy security scanner wrapper",
-  "main": "dist/index.js",
   "scripts": {
-    "dev": "NODE_OPTIONS='--max-old-space-size=150' tsx watch src/index.ts",
+    "dev": "concurrently \"npm:dev:rest\" \"npm:dev:graphql\"",
+    "dev:rest": "NODE_OPTIONS='--max-old-space-size=150' tsx watch src/rest-api-server.ts",
+    "dev:graphql": "NODE_OPTIONS='--max-old-space-size=150' tsx watch src/graphql-server.ts",
     "dev:worker": "NODE_OPTIONS='--max-old-space-size=150' tsx watch src/worker.ts",
-    "start": "node dist/index.js",
+    "start": "concurrently \"npm:start:rest\" \"npm:start:graphql\"",
+    "start:rest": "node dist/rest-api-server.js",
+    "start:graphql": "node dist/graphql-server.js",
     "start:worker": "node dist/worker.js",
     "build": "tsc && tsc-alias",
     "clean": "rm -rf dist",
@@ -16,9 +19,11 @@
   "devDependencies": {
     "@eslint/js": "^9.18.0",
     "@types/express": "^5.0.6",
+    "@types/graphql": "^14.2.3",
     "@types/mongoose": "^5.11.96",
     "@types/node": "^25.5.0",
     "@types/stream-json": "^1.7.8",
+    "concurrently": "^9.2.1",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-n": "^17.17.0",
@@ -30,10 +35,13 @@
     "typescript-eslint": "^8.22.0"
   },
   "dependencies": {
+    "@apollo/server": "^5.4.0",
     "@typegoose/typegoose": "^13.2.1",
     "bullmq": "^5.71.0",
+    "class-validator": "^0.15.1",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
+    "graphql": "^16.13.1",
     "inversify": "^7.11.0",
     "mongoose": "^9.2.4",
     "pino": "^10.3.1",
@@ -41,6 +49,7 @@
     "simple-git": "^3.33.0",
     "stream-chain": "^3.4.1",
     "stream-json": "^1.9.1",
+    "type-graphql": "^2.0.0-rc.3",
     "zod": "^4.3.6"
   }
 }

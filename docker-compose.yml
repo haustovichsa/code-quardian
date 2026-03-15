@@ -46,6 +46,27 @@ services:
     mem_limit: 200m
     restart: unless-stopped
 
+  # GraphQL Server
+  graphql:
+    build:
+      context: .
+      target: graphql
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - GRAPHQL_PORT=4000
+      - LOG_LEVEL=info
+      - MONGO_URI=mongodb://mongodb:27017/code-guardian
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    mem_limit: 200m
+    restart: unless-stopped
+
   # Worker 1
   worker-1:
     build:

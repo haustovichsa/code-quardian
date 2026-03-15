@@ -14,7 +14,7 @@ export const createApp = (container: Container): Express => {
   // Request logging middleware
   app.use(loggingHandler);
 
-  // API routes
+  // REST API routes
   app.use('/api', healthRoutes);
   app.use('/api', createScanRoutes(container));
 

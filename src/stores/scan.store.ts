@@ -8,17 +8,19 @@ export const ScanStoreToken = Symbol.for('ScanStore');
 @injectable()
 export class ScanStore {
   async createScan(repositoryUrl: string): Promise<Scan> {
-    return ScanModel.create({
+    const scan = await ScanModel.create({
       repositoryUrl,
       status: ScanStatus.Queued,
     });
+    return scan.toObject();
   }
 
   async getScanById(id: string): Promise<Scan | null> {
     if (!Types.ObjectId.isValid(id)) {
       return null;
     }
-    return ScanModel.findById(id);
+    const scan = await ScanModel.findById(id);
+    return scan ? scan.toObject() : null;
   }
 
   async updateScanStatus(
@@ -35,12 +37,13 @@ export class ScanStore {
       return null;
     }
 
-    return ScanModel.findByIdAndUpdate(
+    const scan = await ScanModel.findByIdAndUpdate(
       id,
       { status, ...additionalData },
       {
         returnDocument: 'after',
       }
     );
+    return scan ? scan.toObject() : null;
   }
 }

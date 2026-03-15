@@ -8,6 +8,8 @@ import {
   ScanQueueServiceToken,
 } from '@/services/scan-queue.service';
 import { ScanStore, ScanStoreToken } from '@/stores/scan.store';
+import { ScanResolver } from '@/resolvers/scan.resolver';
+import { HealthResolver } from '@/resolvers/health.resolver';
 
 export const createApiContainer = (): Container => {
   const container = new Container();
@@ -24,6 +26,10 @@ export const createApiContainer = (): Container => {
     .inSingletonScope();
 
   container.bind<ScanStore>(ScanStoreToken).to(ScanStore).inSingletonScope();
+
+  // Register resolvers
+  container.bind<ScanResolver>(ScanResolver).toSelf().inSingletonScope();
+  container.bind<HealthResolver>(HealthResolver).toSelf().inSingletonScope();
 
   return container;
 };

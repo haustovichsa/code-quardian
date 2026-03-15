@@ -28,12 +28,12 @@ const startServer = async (): Promise<void> => {
     // Connect to MongoDB
     await mongodbService.connect();
 
-    // Create Express app with container
+    // Create Express app
     const app = createApp(container);
 
     // Start HTTP server
     server = app.listen(env.PORT, () => {
-      logger.info(`API started on http://localhost:${env.PORT}`);
+      logger.info(`REST API available at http://localhost:${env.PORT}/api`);
     });
   } catch (error) {
     logger.fatal({ error }, 'Failed to start server');

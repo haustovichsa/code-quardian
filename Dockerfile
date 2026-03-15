@@ -33,7 +33,23 @@ COPY --from=base /app/package*.json ./
 EXPOSE 3000
 
 # Run API server
-CMD ["node", "dist/index.js"]
+CMD ["node", "dist/rest-api-server.js"]
+
+# GraphQL stage
+FROM node:20-slim AS graphql
+
+WORKDIR /app
+
+# Copy built files and production dependencies from base
+COPY --from=base /app/dist ./dist
+COPY --from=base /app/node_modules ./node_modules
+COPY --from=base /app/package*.json ./
+
+# Expose GraphQL port
+EXPOSE 4000
+
+# Run GraphQL server
+CMD ["node", "dist/graphql-server.js"]
 
 # Worker stage - includes Trivy and Git
 FROM node:20-slim AS worker
