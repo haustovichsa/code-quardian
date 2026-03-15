@@ -2,7 +2,7 @@ import express, { Express } from 'express';
 import { Container } from 'inversify';
 import { healthRoutes } from '@/routes/health.routes';
 import { notFoundHandler, errorHandler } from '@/middlewares/error.middleware';
-import { loggingHandler } from '@/middlewares/loggin.middleware';
+import { logHandler } from '@/middlewares/log.middleware';
 import { createScanRoutes } from '@/routes/scan.routes';
 
 export const createApp = (container: Container): Express => {
@@ -12,7 +12,7 @@ export const createApp = (container: Container): Express => {
   app.use(express.json());
 
   // Request logging middleware
-  app.use(loggingHandler);
+  app.use(logHandler);
 
   // REST API routes
   app.use('/api', healthRoutes);
