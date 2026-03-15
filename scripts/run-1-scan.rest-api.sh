@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Usage:
+#   ./run-1-scan.rest-api.sh                                  # Use default repository
+#   ./run-1-scan.rest-api.sh <repository-url>                 # Use custom repository
+#
+# Examples:
+#   ./run-1-scan.rest-api.sh
+#   ./run-1-scan.rest-api.sh https://github.com/user/custom-repo
+
 # Colors for output
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
